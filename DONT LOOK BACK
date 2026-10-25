@@ -1,0 +1,1367 @@
+# MASTER GAME DEVELOPMENT PROMPT — THE LAST PLAYER
+
+Act as a senior Roblox game developer, Luau programmer, multiplayer systems engineer, horror game designer, UI/UX designer, and monetization specialist.
+
+Build a complete, playable Roblox multiplayer horror game called **THE LAST PLAYER**.
+
+I want a real game implementation, not merely a concept, a mockup, a static map, or a shop interface. Generate the actual Roblox Studio project structure, scripts, UI, gameplay systems, configuration, and installation instructions necessary to create the experience.
+
+The game must be achievable by a solo developer or a small team. Prioritize a polished, playable first release over unnecessary complexity. Make sensible implementation decisions without asking me questions unless an essential technical detail is missing.
+
+If you cannot directly create or modify a Roblox Studio place, generate every required Luau script and asset specification, clearly identify where each component belongs, and provide an ordered installation process. Never claim that something has been implemented, tested, or published unless it actually has been.
+
+---
+
+# 1. GAME IDENTITY
+
+Game title: THE LAST PLAYER
+
+Tagline: Your friends are the only people you can trust. Until the lights go out.
+
+Genre:
+- Multiplayer survival horror
+- Social deception
+- Exploration and puzzle solving
+- Replayable round-based gameplay
+
+Target server size: 2–6 players.
+
+Target round duration: Approximately 8–12 minutes.
+
+Target audience: Roblox players who enjoy cooperative horror, suspicious teammates, unpredictable events, secrets, and playing with friends.
+
+Platform requirements:
+- PC
+- Mobile phones
+- Tablets
+- Console-compatible controls wherever practical
+
+Visual direction:
+- Atmospheric, stylized 3D horror.
+- Abandoned school at midnight.
+- Flickering fluorescent lights.
+- Dark corridors, classrooms, storage rooms, lockers, stairwells, and a security room.
+- Fog, shadows, distant silhouettes, environmental storytelling, and subtle visual distortions.
+- Strong readability and accessibility despite the dark environment.
+- Optimized materials, lighting, and effects suitable for ordinary Roblox devices.
+
+The experience should feel original and atmospheric rather than copying the maps, monsters, characters, sounds, names, or assets of existing games.
+
+Use original or properly licensed assets. Do not assume paid assets or external plugins are available.
+
+---
+
+# 2. CORE GAMEPLAY CONCEPT
+
+Players are trapped inside an abandoned school after midnight.
+
+Their objective is to complete randomized tasks, collect important items, restore the building's systems, and escape before the round ends.
+
+A supernatural entity called THE COPY can imitate the appearance and selected behaviors of players.
+
+When a blackout occurs, the creature can appear as a duplicate of a real player. Players must use observations, communication, and a secret verification mechanic to identify suspicious behavior.
+
+The game should create tension through uncertainty, sound, lighting, teamwork, and decision-making rather than relying exclusively on jumpscares.
+
+The primary gameplay loop is:
+
+1. Enter the lobby.
+2. Join or wait for a round.
+3. Receive the mission briefing.
+4. Enter the school.
+5. Explore and collect mission items.
+6. Complete objectives.
+7. Survive blackouts and investigate suspicious copies.
+8. Unlock the exit.
+9. Escape or be caught.
+10. Receive rewards and progression.
+11. Return to the lobby and start another round.
+
+Every completed round must return players to a valid game state without requiring the server to restart.
+
+---
+
+# 3. ROUND AND MULTIPLAYER SYSTEM
+
+Create a complete, server-authoritative round manager.
+
+Required states:
+
+- WaitingForPlayers
+- Intermission
+- PreparingRound
+- InRound
+- FinalEscape
+- RoundResults
+- ReturningToLobby
+
+Requirements:
+
+- Minimum two players for normal rounds.
+- Maximum six players per server.
+- Configurable intermission and round timers.
+- Clear countdowns and phase transitions.
+- A minimum-player check before a round starts.
+- Correct handling of players leaving during a round.
+- Correct handling of new players joining during an active round.
+- Prevent players from joining a round in an invalid state.
+- Respawn or return players to the correct location after a round.
+- Clean up temporary models, effects, connections, and objects after every round.
+- Prevent multiple rounds from running simultaneously.
+- Handle server shutdowns and unexpected errors gracefully.
+- Avoid indefinite waiting states when a player disconnects.
+- Include configurable development settings for testing rounds quickly.
+
+A player leaving must not break the round, objective system, team state, or remaining players' ability to escape.
+
+All critical game-state decisions must be validated by the server.
+
+---
+
+# 4. THE COPY — SIGNATURE MONSTER
+
+Create an original monster called THE COPY.
+
+The monster's main ability is to imitate a player's appearance and selected behaviors.
+
+The monster must be frightening, readable, and technically achievable without requiring machine learning or expensive external AI.
+
+Required behavior states:
+
+1. Dormant
+2. Stalking
+3. SelectingTarget
+4. Imitating
+5. InvestigatingNoise
+6. Chasing
+7. Searching
+8. Attacking
+9. Retreating
+10. Cooldown
+
+Implement the states as a clean, configurable state machine.
+
+Behavior requirements:
+
+- The monster can patrol predefined locations.
+- It can investigate suspicious noises.
+- It can pursue a valid target under defined conditions.
+- It can lose sight of players and search nearby locations.
+- It can imitate selected player appearances.
+- It can retreat or change behavior after certain events.
+- It cannot become permanently stuck in a state.
+- It must handle targets dying, respawning, disconnecting, or becoming invalid.
+- It must not teleport directly onto players without an intentional, clearly signaled event.
+- It must not see through walls unless a documented special ability explicitly permits it.
+- Difficulty should increase gradually rather than becoming unfair immediately.
+
+Create configurable difficulty levels:
+
+- EASY: slower detection and longer recovery periods.
+- NORMAL: balanced detection, pursuit, and recovery.
+- NIGHTMARE: more frequent disturbances and more aggressive behavior.
+
+Difficulty must remain fair and should not depend on whether a player owns a paid gamepass.
+
+The monster's decisions must be processed securely on the server where appropriate. Do not trust client-supplied target positions or damage requests.
+
+If a fully functional real-time character imitation system is too complex for the environment, implement a reliable simplified alternative that spawns a convincing visual duplicate and animates it using predefined behaviors. Clearly document any limitations.
+
+---
+
+# 5. THE SECRET VERIFICATION MECHANIC
+
+Every player receives a randomly assigned secret verification gesture or signal at the beginning of a round.
+
+Examples include:
+
+- A specific emote.
+- A short flashlight sequence.
+- A crouch-and-pause pattern.
+- A predefined interaction with an object.
+
+The selected verification method must be achievable with standard Roblox controls.
+
+Players can request a verification from nearby teammates.
+
+The system should provide several possible outcomes:
+
+- Verified successfully.
+- Verification incomplete.
+- Suspicious response.
+- Verification unavailable because of distance, obstruction, cooldown, or an invalid state.
+
+The Copy should sometimes imitate the signal imperfectly or perform a scripted mistake.
+
+However, the system must not reveal the monster's identity automatically every time a player requests verification.
+
+Requirements:
+
+- Verification rules are configurable.
+- Requests have reasonable cooldowns.
+- Distance checks are server-validated.
+- Players cannot spam verification requests.
+- The Copy's behavior is controlled by the server.
+- Players cannot exploit remote events to automatically identify all enemies.
+- Verification must not be the only way to survive.
+
+Provide clear visual and audio feedback without revealing hidden information to everyone.
+
+---
+
+# 6. BLACKOUT SYSTEM
+
+Create a complete blackout system.
+
+During a blackout:
+
+- Most environmental lights turn off.
+- Emergency lighting may remain active.
+- Flashlights become especially important.
+- The Copy can reposition or begin an imitation event.
+- Environmental audio changes.
+- Players receive subtle clues that something has happened.
+- The lights return after a configurable duration.
+
+Include several types of blackout events:
+
+A. STANDARD BLACKOUT
+Temporary loss of most lighting.
+
+B. FALSE RESTORATION
+The lights appear to return, but a small number of lights remain broken or behave incorrectly.
+
+C. SHADOW EVENT
+A suspicious silhouette appears briefly at a distance.
+
+D. SECURITY FAILURE
+Security cameras become temporarily unavailable.
+
+E. COPY INCIDENT
+A duplicate appears somewhere in the school.
+
+Requirements:
+
+- Use server-controlled event selection.
+- Use weighted random selection and cooldowns.
+- Prevent the same event from repeating excessively.
+- Do not stack incompatible events.
+- Respect round state and difficulty.
+- Restore lighting correctly after each event.
+- Clean up all temporary objects and effects.
+- Do not permanently alter the map through a temporary event.
+
+---
+
+# 7. SCHOOL MAP AND LEVEL DESIGN
+
+Create one complete, playable abandoned school map for the initial release.
+
+Required areas:
+
+1. Lobby and briefing room.
+2. Main entrance.
+3. Central corridor.
+4. Multiple classrooms.
+5. Library.
+6. Storage room.
+7. Janitor's closet.
+8. Locker area.
+9. Stairwell.
+10. Electrical room.
+11. Security room.
+12. Medical or first-aid room.
+13. Basement corridor.
+14. Final extraction area.
+15. Multiple hiding places.
+
+Each room must have a purpose.
+
+Include:
+
+- Doors and interactive locks.
+- Keys and collectible mission items.
+- Distinct visual landmarks.
+- Alternative routes.
+- Hiding locations with sensible limitations.
+- Environmental storytelling.
+- Decorative objects that do not obstruct gameplay.
+- Emergency lighting.
+- Navigation cues.
+- A readable extraction route.
+
+The map must be traversable and correctly connected. Avoid decorative hallways that lead nowhere unless they are deliberate dead ends.
+
+Use modular room pieces where practical.
+
+If automated map generation is available, ensure that it produces valid navigation and collision. Otherwise, create the map as a documented hierarchy of models and parts.
+
+Do not generate an enormous map that is difficult to complete or optimize.
+
+---
+
+# 8. OBJECTIVE SYSTEM
+
+Create a modular objective manager.
+
+Each round should select a reasonable number of objectives from an available pool.
+
+Initial objectives:
+
+1. FIND THE KEYS
+Locate a key that unlocks a required area.
+
+2. RESTORE POWER
+Find the necessary components and interact with the electrical panel.
+
+3. RECOVER SCHOOL RECORDS
+Find several documents distributed around the map.
+
+4. REPAIR SECURITY
+Activate the security terminal using collected components.
+
+5. UNLOCK THE EXIT
+Complete the required tasks and activate the extraction mechanism.
+
+Additional optional objectives:
+
+- Find a hidden tape.
+- Recover a lost item.
+- Photograph a suspicious anomaly.
+- Locate a secret room.
+- Collect an optional evidence file.
+
+Requirements:
+
+- Objective selection must be randomized within valid constraints.
+- Every selected objective must be completable.
+- Required items must spawn at reachable locations.
+- Objective dependencies must be checked.
+- The UI must show current objectives and progress.
+- Interactions must be validated by the server.
+- Rewards must be granted only once per completed objective.
+- Abandoned or impossible objectives must be handled safely.
+- Objective progress must remain consistent for all players.
+- Provide a clear success or failure state.
+
+Use reusable modules so new objectives can be added without rewriting the entire game.
+
+---
+
+# 9. INTERACTION SYSTEM
+
+Implement a consistent interaction framework.
+
+Players must be able to:
+
+- Open doors.
+- Pick up keys and evidence.
+- Collect mission items.
+- Search specific containers.
+- Hide in designated locations.
+- Activate switches.
+- Operate terminals.
+- Repair electrical components.
+- Interact with the extraction mechanism.
+- Read discoverable documents.
+
+Use ProximityPrompts where appropriate.
+
+Requirements:
+
+- Configure interaction distance.
+- Prevent interaction through walls where practical.
+- Prevent duplicate item collection.
+- Validate distance and game state on the server.
+- Provide interaction feedback.
+- Cancel interactions when the player moves away, dies, or disconnects.
+- Ensure controls work on keyboard, touch, and gamepad.
+- Keep interaction prompts readable and unobtrusive.
+
+Do not allow players to collect items from across the map by firing a remote event.
+
+---
+
+# 10. PLAYER MOVEMENT AND SURVIVAL
+
+Create balanced survival mechanics.
+
+Required features:
+
+- Standard walking and sprinting.
+- Configurable stamina.
+- Stamina regeneration.
+- Flashlight activation and deactivation.
+- Flashlight battery or energy management.
+- Crouching if feasible.
+- Hiding interactions.
+- Monster detection and pursuit.
+- Downed, captured, or eliminated states.
+- Spectating for eliminated players.
+- Proper recovery and cleanup after a round.
+
+Avoid excessive movement complexity in the first release.
+
+If a player is caught:
+
+- Play an appropriate non-graphic capture animation or transition.
+- Move them into a spectator state.
+- Allow them to observe surviving teammates.
+- Prevent them from interfering with active objectives.
+- Restore their normal state at the appropriate time.
+
+Do not create graphic injury effects.
+
+Ensure sprinting and stamina do not make the monster trivial to escape.
+
+Use server-side validation for movement-sensitive rewards, interactions, and damage.
+
+---
+
+# 11. FLASHLIGHT AND EQUIPMENT
+
+Create a functional flashlight system.
+
+Requirements:
+
+- Toggle flashlight on PC, mobile, and gamepad.
+- Server-controlled limits where necessary.
+- Configurable brightness, range, battery duration, and recharge behavior.
+- Visual feedback when the battery is low.
+- Appropriate sound effects.
+- Flashlight effects that do not destroy performance.
+- Equipment resets or persists according to documented rules.
+
+Initial equipment:
+
+- Standard flashlight.
+- Optional walkie-talkie.
+- Basic objective tracker.
+
+Future equipment may include:
+
+- Noise decoy.
+- Disposable camera.
+- Motion sensor.
+- Temporary emergency light.
+- Evidence detector.
+
+Only implement equipment that can be made reliable. Do not add broken or nonfunctional inventory buttons.
+
+---
+
+# 12. RANDOM EVENTS AND REPLAYABILITY
+
+Create a reusable event manager.
+
+Possible events:
+
+- Lights flicker unexpectedly.
+- A distant door slams.
+- Footsteps are heard in an empty hallway.
+- A classroom appears subtly different.
+- A phone rings in an abandoned room.
+- A security monitor displays a suspicious silhouette.
+- A player hears an isolated false audio cue.
+- A temporary power failure blocks a route.
+- A rare hidden room becomes available.
+- The Copy appears in an unexpected location.
+
+Requirements:
+
+- Events must have cooldowns.
+- Event selection must be weighted.
+- Events must not make objectives impossible.
+- Events must respect accessibility settings.
+- Sound cues must not expose the monster unfairly.
+- Clients must not control event selection.
+- Events must be cleaned up properly.
+
+Keep some events cosmetic and others mechanically meaningful.
+
+Make rare events genuinely uncommon so that players have reasons to discuss and share their experiences.
+
+---
+
+# 13. UI AND UX
+
+Build a complete, polished interface.
+
+The interface must use a consistent visual design:
+
+- Dark charcoal panels.
+- Subtle red warning accents.
+- Clean white text.
+- Muted secondary text.
+- Restrained glow and animation.
+- Clear typography.
+- High contrast.
+- Minimal screen clutter.
+
+Required screens:
+
+A. MAIN MENU
+- Game title.
+- Play button.
+- Shop button.
+- Settings button.
+- Credits button.
+- Short atmospheric background.
+- Current progression summary.
+
+B. LOBBY
+- Player list.
+- Ready or queue status.
+- Intermission countdown.
+- Party information where supported.
+- Shop access.
+- Clear instructions.
+
+C. ROUND HUD
+- Current objectives.
+- Objective progress.
+- Round timer.
+- Stamina indicator.
+- Flashlight battery.
+- Interaction prompts.
+- Optional teammate status.
+- Clear blackout warnings.
+
+D. PAUSE AND SETTINGS
+- Master volume.
+- Music volume.
+- Sound effects volume.
+- Sensitivity where relevant.
+- Camera settings where appropriate.
+- Reduced visual effects.
+- Reduced screen shake.
+- Subtitles or captions for important audio cues.
+- Close and resume controls.
+
+E. ROUND RESULTS
+- Escaped or captured status.
+- Objectives completed.
+- Coins earned.
+- Experience gained.
+- Personal contribution.
+- Return to lobby button.
+
+F. SHOP
+- Gamepasses.
+- Cosmetic items.
+- Prices.
+- Clear descriptions.
+- Ownership status.
+- Purchase prompts.
+
+G. COLLECTIONS
+- Unlockable cosmetics.
+- Evidence files.
+- Discovered secrets.
+- Monster archive.
+
+H. SPECTATOR
+- Switch between valid surviving players.
+- Clear spectator status.
+- No interaction with active objectives.
+
+I. TUTORIAL
+- Explain the basic controls.
+- Explain objectives.
+- Explain the Copy.
+- Explain the verification mechanic.
+- Explain extraction.
+
+Requirements:
+
+- Responsive scaling.
+- Mobile-friendly buttons.
+- Keyboard and gamepad navigation where feasible.
+- No overlapping UI elements.
+- No text clipped on common screen sizes.
+- Safe handling of UI during death, respawn, disconnects, and round transitions.
+- Proper handling of menus opening and closing.
+- Avoid excessive animations that affect performance.
+
+---
+
+# 14. PROGRESSION AND CURRENCY
+
+Create a fair progression system.
+
+Currency name: CREDITS.
+
+Players earn credits through:
+
+- Escaping successfully.
+- Completing objectives.
+- Finding optional evidence.
+- Completing daily challenges.
+- Completing weekly challenges.
+- Discovering secrets for the first time.
+
+Rewards must be calculated and granted by the server.
+
+Do not award currency for merely firing a client event.
+
+Prevent duplicate objective rewards, repeated claim abuse, and obvious farming exploits.
+
+Create experience levels with progressively increasing requirements.
+
+Progression rewards may include:
+
+- Titles.
+- Cosmetic flashlight skins.
+- Character accessories.
+- Emotes.
+- Investigation-room decorations.
+- Profile badges.
+- Collection entries.
+
+Keep core gameplay mechanics available to everyone.
+
+Do not require Robux purchases to complete normal objectives or survive.
+
+---
+
+# 15. PLAYER PROFILE AND SAVING
+
+Use DataStoreService to save persistent player data.
+
+Save:
+
+- Credits.
+- Experience.
+- Level.
+- Unlocked cosmetics.
+- Equipped cosmetics.
+- Owned titles.
+- Emotes.
+- Evidence collection.
+- Challenge progress.
+- Basic lifetime statistics.
+- Settings that should persist.
+- First-time tutorial completion.
+
+Requirements:
+
+- Use protected DataStore calls.
+- Include retries with sensible backoff.
+- Handle data load failures.
+- Handle players leaving.
+- Handle BindToClose.
+- Avoid overwriting valid saved data with empty defaults after a load failure.
+- Avoid excessive save requests.
+- Validate saved data before applying it.
+- Use a versioned data structure.
+- Support future data migrations.
+- Keep critical currency and rewards server-authoritative.
+- Prevent negative balances and invalid item ownership.
+
+If persistent storage is unavailable in Studio testing, show an informative warning and allow safe testing without falsely claiming data was saved.
+
+Do not store sensitive personal information.
+
+---
+
+# 16. GAMEPASSES AND OPTIONAL MONETIZATION
+
+Create an attractive, functional in-game shop called:
+
+THE BLACK MARKET
+
+Subtitle: Equip yourself. Trust nobody.
+
+Use the following proposed gamepasses and prices:
+
+PASS 1 — FLASHLIGHT PRO
+Price: 49 Robux.
+
+Benefits:
+- Exclusive flashlight skins.
+- Premium flashlight appearance slot.
+- Optional equip and unequip cosmetic effects.
+
+PASS 2 — INVESTIGATOR
+Price: 79 Robux.
+
+Benefits:
+- Exclusive detective outfit.
+- Investigator name title.
+- Exclusive evidence-board theme.
+
+PASS 3 — EXTRA EMOTES
+Price: 39 Robux.
+
+Benefits:
+- Exclusive victory emotes.
+- Panic reactions.
+- Harmless social emotes.
+
+PASS 4 — VIP
+Price: 99 Robux.
+
+Benefits:
+- VIP name tag.
+- Exclusive character cosmetics.
+- Safehouse decorations.
+- Optional VIP profile styling.
+
+PASS 5 — SUPPORTER BUNDLE
+Price: 149 Robux.
+
+Benefits:
+- A clearly listed exclusive cosmetic bundle.
+- Distinct items not included in other passes.
+- A cosmetic bundle discount compared with buying its equivalent individual cosmetics.
+
+Do not promise that the bundle grants ownership of other passes unless that functionality is explicitly implemented and the bundle price is adjusted accordingly.
+
+IMPORTANT IMPLEMENTATION RULES:
+
+- These are proposed prices, not guaranteed optimal prices.
+- Do not invent Roblox gamepass IDs.
+- Use a central configuration module containing clearly marked placeholder IDs.
+- Explain how to create each pass in the Roblox Creator Dashboard.
+- Explain where to paste each real ID.
+- Use MarketplaceService for actual gamepass purchase prompts.
+- Use UserOwnsGamePassAsync to check ownership.
+- Handle purchase completion events and refresh ownership.
+- Handle API errors gracefully.
+- Do not falsely display a purchase as successful.
+- Do not use a custom fake Robux balance.
+- Do not pretend a pass is purchasable before it has a valid ID.
+- Do not grant benefits merely because the player clicked a button.
+- Validate entitlements on the server.
+- Refresh entitlements safely after purchases and on player joins.
+- Make owned passes display an OWNED label.
+- Prevent duplicate purchases where appropriate.
+- Clearly distinguish permanent passes from consumable developer products.
+- Do not create developer products unless they are separately configured and explained.
+
+Monetization principles:
+
+- No paid-only survival advantage.
+- No exclusive objective completion.
+- No paid-only ability to identify the monster.
+- No paid-only access to essential areas.
+- No manipulative countdowns or misleading discounts.
+- No fake purchase confirmations.
+- No requirement to spend Robux to enjoy the full core gameplay loop.
+
+All five passes must have meaningful cosmetic value and accurately described contents.
+
+---
+
+# 17. GAMEPASS SHOP INTERFACE
+
+Create an attractive shop UI.
+
+Each pass card must show:
+
+- Icon.
+- Name.
+- Price in Robux.
+- Main benefits.
+- Permanent ownership indicator.
+- Purchase button.
+- Clear confirmation feedback.
+- Error feedback if the purchase prompt fails.
+
+Add:
+
+- Shop close button.
+- Responsive card layout.
+- Category or filter options if useful.
+- A featured Supporter Bundle card.
+- Subtle hover animations.
+- Touch-friendly buttons.
+- An optional preview of cosmetic items.
+
+Do not claim to retrieve a player's actual Robux balance unless a legitimate supported mechanism exists.
+
+Keep the shop functional even when one or more pass IDs have not been configured. Display those passes as unavailable for purchase during development rather than showing broken buttons.
+
+---
+
+# 18. COSMETICS AND INVENTORY
+
+Create a functional cosmetic inventory.
+
+Requirements:
+
+- Display unlocked cosmetics.
+- Display locked cosmetics.
+- Show ownership accurately.
+- Allow players to equip and unequip unlocked items.
+- Validate all equip requests on the server.
+- Save equipped items.
+- Reset temporary round-specific equipment correctly.
+- Ensure that cosmetics do not grant unadvertised gameplay advantages.
+- Handle missing or deleted cosmetic assets gracefully.
+
+Initial cosmetic categories:
+
+- Character outfits.
+- Flashlight skins.
+- Player titles.
+- Emotes.
+- Investigation-room decorations.
+
+Use a central item configuration so new cosmetics can be added without rewriting the inventory system.
+
+---
+
+# 19. DAILY AND WEEKLY CHALLENGES
+
+Create a challenge system with server-side validation.
+
+Daily challenge examples:
+
+- Complete two objectives.
+- Collect three pieces of evidence.
+- Survive one blackout.
+- Escape one round.
+
+Weekly challenge examples:
+
+- Escape three rounds.
+- Discover five unique secrets.
+- Complete several optional objectives.
+- Finish a round with a full team.
+
+Requirements:
+
+- Challenge progress must be validated on the server.
+- Rewards can only be claimed once per challenge period.
+- Challenge resets must use reliable server-side time calculations.
+- Prevent duplicate reward claims.
+- Save progress where appropriate.
+- Clearly communicate rewards and requirements.
+- Do not require a purchase to complete challenges.
+
+If the full challenge system is too large for the initial build, implement daily challenges first and provide a clearly documented extension point for weekly challenges.
+
+---
+
+# 20. SOUND DESIGN
+
+Create an original horror audio system.
+
+Sound categories:
+
+- Ambient school sounds.
+- Fluorescent light hum.
+- Distant footsteps.
+- Door creaks.
+- Object interaction sounds.
+- Electrical failures.
+- Blackout warnings.
+- Monster movement.
+- Suspicious whispers.
+- Objective completion sounds.
+- Extraction alarms.
+- Round victory and defeat sounds.
+
+Requirements:
+
+- Use properly licensed audio assets or documented placeholders.
+- Never invent audio asset IDs.
+- Centralize sound configuration.
+- Include volume settings.
+- Avoid sudden excessively loud sounds.
+- Do not use constant jumpscares.
+- Use 3D spatial audio where appropriate.
+- Make essential audio information accessible through visual cues or captions.
+- Clean up temporary sounds when events end.
+
+If no appropriate audio assets are available, implement the audio system with placeholders and explain how to replace them.
+
+---
+
+# 21. LIGHTING AND ATMOSPHERE
+
+Use Roblox Lighting and appropriate local lighting effects to create the intended mood.
+
+Include:
+
+- Controlled ambient lighting.
+- Carefully placed point lights and spotlights.
+- Flickering lights.
+- Emergency lights.
+- Darkness zones.
+- Optional fog or atmosphere effects.
+- Subtle visual distortion during selected events.
+- Environmental particles where appropriate.
+
+Requirements:
+
+- Avoid making the map completely unplayable due to darkness.
+- Provide brightness and reduced-effects settings where feasible.
+- Ensure important objectives remain readable.
+- Avoid excessive full-screen effects.
+- Restore all temporary lighting states after an event.
+- Optimize lighting and shadow costs for mobile devices.
+
+---
+
+# 22. SECURITY AND ANTI-EXPLOIT PROTECTION
+
+Treat the server as authoritative for important game logic.
+
+Protect:
+
+- Currency.
+- Experience.
+- Objective completion.
+- Item collection.
+- Round completion.
+- Player elimination.
+- Monster targeting.
+- Interaction distance.
+- Gamepass entitlements.
+- Cosmetic ownership.
+- Challenge claims.
+- Inventory changes.
+
+Requirements:
+
+- Validate remote event arguments.
+- Rate-limit client requests.
+- Validate player state and interaction distance.
+- Never trust a client-reported reward amount.
+- Never trust a client-reported objective completion.
+- Never trust a client-reported gamepass purchase.
+- Do not expose secret monster information unnecessarily.
+- Do not let spectators interact with the live round.
+- Do not let players bypass round states through client requests.
+- Use server-side checks for important transitions.
+- Avoid granting rewards from RemoteFunctions without validation.
+
+Use RemoteEvents and RemoteFunctions only where necessary.
+
+Keep replicated information limited to what clients need.
+
+Do not implement intrusive anti-cheat behavior that falsely bans innocent players. Log suspicious requests during development and reject invalid actions safely.
+
+---
+
+# 23. PERFORMANCE AND OPTIMIZATION
+
+The game must be designed for practical Roblox performance.
+
+Requirements:
+
+- Optimize for mobile and lower-end computers.
+- Use reasonable part counts.
+- Avoid unnecessary high-frequency loops.
+- Avoid creating and destroying excessive objects every frame.
+- Use event-driven logic where possible.
+- Clean up temporary objects.
+- Use task scheduling appropriately.
+- Avoid unbounded connections and memory leaks.
+- Keep monster navigation efficient.
+- Use pathfinding only when needed.
+- Handle failed pathfinding requests.
+- Avoid excessive simultaneous lights, particles, and sounds.
+- Use streaming or other appropriate map-loading techniques if useful.
+- Test with multiple players and realistic latency.
+
+Do not create an unnecessarily complex architecture that makes the first version impossible to maintain.
+
+---
+
+# 24. TUTORIAL AND NEW PLAYER EXPERIENCE
+
+Create a short in-game tutorial.
+
+Explain:
+
+1. How to move and sprint.
+2. How to use the flashlight.
+3. How to interact with objects.
+4. How to complete objectives.
+5. How blackouts work.
+6. How the Copy imitates players.
+7. How to request verification.
+8. How to escape.
+9. How rewards work.
+
+The tutorial must be skippable.
+
+Show contextual hints only when useful.
+
+New players should understand the objective within their first minute of active gameplay.
+
+Do not overload the screen with instructions.
+
+---
+
+# 25. LOBBY AND SOCIAL FEATURES
+
+Create a small atmospheric lobby.
+
+Include:
+
+- Main menu.
+- Queue or ready system.
+- Player list.
+- Practice area.
+- Cosmetic preview area.
+- Gamepass shop.
+- Basic credits and level display.
+- Instructions.
+- Credits for contributors.
+
+If party matchmaking cannot be implemented within the current environment, implement a stable server-local queue and document the limitation.
+
+Do not claim to support cross-server party matchmaking unless it is implemented.
+
+Players should be able to play with friends through normal Roblox server joining.
+
+---
+
+# 26. MAP SECRETS AND LORE
+
+Give the school a mystery that unfolds through gameplay.
+
+Backstory:
+
+The school was evacuated after repeated reports of students appearing in places where they could not have been.
+
+Security footage showed people entering empty rooms and leaving with different faces.
+
+The official explanation was an electrical failure.
+
+Players discover fragments of the truth through documents, tapes, classroom details, and hidden rooms.
+
+Create an initial collection of original, short lore documents.
+
+Include:
+
+- A missing-student report.
+- A maintenance log.
+- An incident report.
+- A security-room note.
+- A final hidden message.
+
+Keep the story mysterious. Do not explain every detail immediately.
+
+Lore discoveries should persist across sessions and contribute to the collection system.
+
+All text should be original.
+
+---
+
+# 27. ROUND REWARDS AND STATISTICS
+
+Create a results system.
+
+Track appropriate statistics such as:
+
+- Successful escapes.
+- Rounds played.
+- Objectives completed.
+- Evidence collected.
+- Times captured.
+- Secrets discovered.
+- Survival streak.
+
+Award credits based on transparent rules.
+
+Example reward structure:
+
+- Participation reward: small amount.
+- Successful escape: additional credits.
+- Objective completion: additional credits.
+- Optional evidence: bonus credits.
+- First-time discovery: one-time bonus.
+
+Use configurable values.
+
+Avoid creating incentives for players to intentionally sabotage teammates.
+
+Prevent repeated objective claims and reward duplication.
+
+Display a clear summary at the end of each round.
+
+---
+
+# 28. ACCESSIBILITY AND FAIRNESS
+
+Include:
+
+- Adjustable audio levels.
+- Captions or text indicators for important sound cues.
+- Reduced screen shake.
+- Reduced visual effects.
+- Readable objective markers.
+- Clear interaction feedback.
+- Mobile-friendly controls.
+- Adequate contrast.
+- Non-graphic capture effects.
+- Fair and understandable monster behavior.
+
+Ensure the game remains playable if a player cannot rely on sound alone.
+
+Do not rely exclusively on color to communicate critical information.
+
+---
+
+# 29. ROBLOX STUDIO PROJECT STRUCTURE
+
+Organize the implementation professionally.
+
+Suggested structure:
+
+ReplicatedStorage
+- Shared
+  - GameConfig
+  - ObjectiveConfig
+  - MonsterConfig
+  - EventConfig
+  - CosmeticConfig
+  - GamepassConfig
+  - UtilityModules
+- Remotes
+  - RequestInteraction
+  - RequestVerification
+  - RequestEquipment
+  - RequestCosmetic
+  - RequestShopRefresh
+  - RoundStateUpdate
+  - ObjectiveUpdate
+  - NotificationEvent
+
+ServerScriptService
+- MainServer
+- RoundManager
+- ObjectiveManager
+- MonsterController
+- RandomEventManager
+- InteractionService
+- PlayerDataService
+- RewardService
+- GamepassService
+- InventoryService
+- ChallengeService
+- SecurityService
+
+ServerStorage
+- MonsterAssets
+- ItemTemplates
+- MapTemplates
+- CosmeticAssets
+
+StarterPlayer
+- StarterPlayerScripts
+  - ClientController
+  - InputController
+  - AudioController
+  - EffectsController
+
+StarterGui
+- MainMenuGui
+- RoundHUD
+- ShopGui
+- InventoryGui
+- ResultsGui
+- TutorialGui
+- SettingsGui
+
+Workspace
+- Lobby
+- SchoolMap
+- SpawnLocations
+- ObjectiveLocations
+- MonsterWaypoints
+- ExtractionPoint
+
+This is a proposed structure. Adapt it where needed to ensure the implementation actually works.
+
+Do not create empty modules merely to make the project appear complete.
+
+If a single script must be used for a small prototype, explain the trade-off and keep it maintainable.
+
+---
+
+# 30. TECHNICAL IMPLEMENTATION STANDARDS
+
+Use Luau and supported Roblox APIs.
+
+Requirements:
+
+- Use proper type annotations where practical.
+- Use clear names and comments.
+- Avoid deprecated APIs.
+- Use task.wait, task.spawn, and other appropriate task-library methods instead of deprecated alternatives.
+- Handle asynchronous operations correctly.
+- Use pcall where appropriate for networked services and persistent data operations.
+- Avoid blocking the entire game while loading player data.
+- Separate server logic from client presentation.
+- Centralize tunable values.
+- Avoid unnecessary duplication.
+- Use CollectionService tags or attributes where they improve maintainability.
+- Document module dependencies.
+- Ensure required RemoteEvents and RemoteFunctions are created or provide a reliable setup script.
+- Validate all referenced instances and configurations.
+- Make initialization order explicit.
+- Handle missing assets gracefully.
+
+Every script must include its intended location and purpose.
+
+Every remote must have a documented argument schema and validation rules.
+
+Do not provide pseudocode when working executable Luau code is reasonably possible.
+
+If an implementation cannot be completed, identify the exact missing dependency and provide the best working fallback.
+
+---
+
+# 31. TESTING AND ACCEPTANCE CRITERIA
+
+Before declaring the project complete, verify the following or provide an explicit manual test procedure if automated execution is unavailable.
+
+ROUND SYSTEM:
+- Two players can start a round.
+- The round ends correctly.
+- The server returns everyone to the lobby.
+- Players leaving mid-round do not break the system.
+- New rounds can start repeatedly.
+
+MONSTER:
+- The Copy can spawn.
+- It can imitate a player.
+- It can investigate noises.
+- It can pursue a valid target.
+- It can lose a target.
+- It can recover from failed pathfinding.
+- It does not become permanently stuck.
+
+OBJECTIVES:
+- Required items spawn correctly.
+- Objectives update for all players.
+- Objective rewards cannot be duplicated.
+- The exit unlocks only when requirements are satisfied.
+
+BLACKOUTS:
+- Lights restore correctly.
+- Events do not overlap incorrectly.
+- Temporary objects are cleaned up.
+
+PROGRESSION:
+- Rewards are calculated server-side.
+- Valid data saves and loads.
+- Data failures are handled safely.
+
+GAMEPASSES:
+- Real configured IDs trigger the Roblox purchase prompt.
+- Unconfigured IDs do not trigger fake success.
+- Ownership is refreshed after purchase.
+- Owned passes display correctly.
+- Server-side perks require verified ownership.
+
+UI:
+- Desktop controls work.
+- Mobile controls work.
+- UI fits common screen sizes.
+- The shop can be opened and closed.
+- Results and objectives remain readable.
+
+SECURITY:
+- Invalid objective claims are rejected.
+- Invalid reward requests are rejected.
+- Remote spam is rate-limited.
+- Spectators cannot alter active gameplay.
+
+PERFORMANCE:
+- No obvious unbounded loops.
+- No accumulating temporary monsters or event objects.
+- No repeated round initialization leaks.
+- Reasonable performance with six players.
+
+Do not claim these tests passed unless they have actually been executed.
+
+---
+
+# 32. DEVELOPMENT PRIORITIES
+
+If the entire project is too large to generate in one operation, use these phases.
+
+PHASE 1 — PLAYABLE PROTOTYPE
+- Lobby.
+- One school map.
+- Round manager.
+- Basic monster.
+- One blackout event.
+- Basic objectives.
+- Extraction.
+- Results screen.
+
+PHASE 2 — CORE HORROR MECHANICS
+- Player imitation.
+- Verification system.
+- Flashlights.
+- Hiding.
+- More random events.
+- Sound and atmosphere.
+
+PHASE 3 — PERSISTENCE AND PROGRESSION
+- Credits.
+- Experience.
+- Data saving.
+- Cosmetics.
+- Inventory.
+- Statistics.
+
+PHASE 4 — MONETIZATION
+- Black Market shop.
+- Five configured gamepass slots.
+- Purchase prompts.
+- Ownership checks.
+- Server-side entitlements.
+
+PHASE 5 — POLISH
+- Tutorial.
+- Mobile controls.
+- Accessibility.
+- Lore.
+- Challenges.
+- Performance improvements.
+- Testing.
+
+Finish each phase with a working, testable result before expanding.
+
+---
+
+# 33. FINAL DELIVERABLES
+
+Provide:
+
+1. A complete description of the generated project.
+2. The full project hierarchy.
+3. Every required Luau script and module.
+4. All UI implementation instructions.
+5. A map creation or generation procedure.
+6. A list of required assets and placeholders.
+7. The real gamepass ID configuration instructions.
+8. DataStore setup instructions.
+9. Exact steps for installing the scripts in Roblox Studio.
+10. Exact steps for testing multiplayer using Studio's test-server tools.
+11. A list of external dependencies, if any.
+12. A checklist for publishing the game.
+13. Known limitations and unfinished features.
+14. A troubleshooting guide for common errors.
+15. A clear distinction between implemented, generated-but-unverified, and manual setup steps.
+
+If you can create files or project artifacts, organize them so that they can be imported into Roblox Studio as easily as possible.
+
+If you can modify the Roblox project directly, implement the changes in the project rather than merely describing them.
+
+If you can only generate code, output the code in complete, clearly labeled sections in dependency order. Do not silently omit important scripts because of response length; divide the work into numbered phases and keep track of what remains.
+
+Do not replace working game logic with decorative UI. Do not fabricate gamepass IDs, asset IDs, test results, or publishing success.
+
+The final goal is a genuinely playable, replayable multiplayer horror game that a solo developer or small team can finish, test, and release.
+
+Start by inspecting the available Forge GUI capabilities and determining whether you can create the project directly, generate scripts, or only provide instructions. Then implement the highest-priority working version and continue through the phases systematically.
